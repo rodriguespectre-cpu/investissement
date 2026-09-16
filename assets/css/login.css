@@ -1,0 +1,284 @@
+/* === BASE IDENTIQUE A REGISTER === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f0ff 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #1e293b;
+}
+
+/* === CONTAINER === */
+.login-page { width: 100%; max-width: 1100px; }
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(37, 99, 235, 0.15);
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease;
+}
+
+/* === FORMULAIRE GAUCHE === */
+.login-form-wrapper { padding: 50px 45px; }
+.login-header { margin-bottom: 30px; }
+.back-home {
+    display: inline-block;
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    transition: 0.3s;
+}
+.back-home:hover { color: #1e40af; transform: translateX(-3px); }
+
+.login-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: blue;
+    margin-bottom: 8px;
+    margin-left: 40px;
+
+}
+.login-header p { color: #64748b; font-size: 0.95rem; margin-left: 20px; }
+
+/* === ALERTES === */
+.alert {
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.4s ease;
+}
+.alert-icon { font-size: 1.2rem; }
+.alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+.alert-success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* === FORMULAIRE === */
+.form-group { margin-bottom: 20px; }
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+.input-icon {
+    position: absolute;
+    left: 14px;
+    font-size: 1.1rem;
+    color: #94a3b8;
+    transition: 0.3s;
+}
+.input-wrapper input {
+    width: 100%;
+    padding: 14px 14px 14px 45px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+}
+.input-wrapper input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+.toggle-password:hover { opacity: 1; transform: scale(1.1); }
+
+/* === OPTIONS : REMEMBER + FORGOT === */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #475569;
+    cursor: pointer;
+}
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #2563eb;
+}
+.forgot-link {
+    color: #2563eb;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+/* === BOUTON === */
+.btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
+}
+.btn-arrow { transition: transform 0.3s; }
+.btn-submit:hover .btn-arrow { transform: translateX(4px); }
+
+.login-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+.login-footer a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+.login-footer a:hover { text-decoration: underline; }
+
+/* === ILLUSTRATION DROITE === */
+.login-illustration {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    padding: 50px 40px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+.login-illustration::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    bottom: -50px;
+    left: -50px;
+}
+.illustration-content { position: relative; z-index: 2; text-align: center; }
+.illustration-icon { font-size: 4rem; margin-bottom: 20px; }
+.illustration-content h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+.illustration-content p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+.illustration-features { text-align: left; margin-bottom: 35px; }
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+    font-size: 0.95rem;
+}
+.feature-item span {
+    background: rgba(255,255,255,0.2);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* === STATS === */
+.illustration-stats {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+}
+.stat-item {
+    text-align: center;
+}
+.stat-item strong {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+.stat-item span {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 900px) {
+    .login-container { grid-template-columns: 1fr; }
+    .login-illustration { display: none; }
+    .login-form-wrapper { padding: 35px 25px; }
+    .form-options { flex-direction: column; align-items: flex-start; gap: 15px; }
+}
