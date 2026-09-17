@@ -33,12 +33,12 @@ if (empty($_SESSION['csrf_token'])) {
 // CONFIGURATION SMTP (Vos identifiants)
 // =============================================
 $smtp_config = [
-    'host' => 'pro.eu.turbo-smtp.com',
-    'port' => 587,
-    'username' => '9a20efcdc1b845ed7399',
-    'password' => '06xmoUd7fqtNPQV9J1Tu',
-    'from_email' => 'rodriguespectre@gmail.com',
-    'from_name' => 'SpectreACADEMI'
+    'host' => $_ENV['SMTP_HOST'] ?? getenv('SMTP_HOST') ?: 'pro.eu.turbo-smtp.com',
+    'port' => (int) ($_ENV['SMTP_PORT'] ?? getenv('SMTP_PORT') ?: 587),
+    'username' => $_ENV['SMTP_USERNAME'] ?? getenv('SMTP_USERNAME') ?: '',
+    'password' => $_ENV['SMTP_PASSWORD'] ?? getenv('SMTP_PASSWORD') ?: '',
+    'from_email' => $_ENV['SMTP_FROM_EMAIL'] ?? getenv('SMTP_FROM_EMAIL') ?: '',
+    'from_name' => $_ENV['SMTP_FROM_NAME'] ?? getenv('SMTP_FROM_NAME') ?: 'SpectreACADEMI'
 ];
 
 // =============================================
@@ -229,8 +229,8 @@ function sendEmailSMTP($to, $name, $code, $smtp_config) {
     } catch (Exception $e) {
         error_log("❌ SMTP Error: " . $e->getMessage());
         
-        // Fallback: Méthode alternative
-        return sendEmailFallback($to, $name, $code, $smtp_config);
+        // Aucun fallback mail() : Render ne fournit pas Sendmail.
+        return false;
     }
 }
 
