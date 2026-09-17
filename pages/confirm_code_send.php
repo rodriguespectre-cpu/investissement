@@ -34,7 +34,7 @@ if (empty($_SESSION['csrf_token'])) {
 // =============================================
 $smtp_config = [
     'host' => $_ENV['SMTP_HOST'] ?? getenv('SMTP_HOST') ?: 'pro.eu.turbo-smtp.com',
-    'port' => (int) ($_ENV['SMTP_PORT'] ?? getenv('SMTP_PORT') ?: 587),
+    'port' => (int) ($_ENV['SMTP_PORT'] ?? getenv('SMTP_PORT') ?: 2525),
     'username' => $_ENV['SMTP_USERNAME'] ?? getenv('SMTP_USERNAME') ?: '',
     'password' => $_ENV['SMTP_PASSWORD'] ?? getenv('SMTP_PASSWORD') ?: '',
     'from_email' => $_ENV['SMTP_FROM_EMAIL'] ?? getenv('SMTP_FROM_EMAIL') ?: '',
