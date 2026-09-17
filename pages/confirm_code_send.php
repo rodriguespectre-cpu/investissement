@@ -67,6 +67,12 @@ function sendEmailSMTP($to, $name, $code, $smtp_config) {
     $smtp_username = $smtp_config['username'];
     $smtp_password = $smtp_config['password'];
     $from_email = $smtp_config['from_email'];
+
+    error_log("📡 SMTP HOST: " . $smtp_host);
+    error_log("📡 SMTP PORT: " . $smtp_port);
+    error_log("📡 SMTP USER: " . $smtp_username);
+    error_log("📡 SMTP FROM: " . $from_email);
+    error_log("📡 SMTP TO: " . $to);
     $from_name = $smtp_config['from_name'];
     
     $subject = '🔐 Code de confirmation - SpectreACADEMI';
@@ -124,7 +130,7 @@ function sendEmailSMTP($to, $name, $code, $smtp_config) {
     ];
 
     // =============================================
-    // MÉTHODE 1: fsockopen avec TLS (Port 587)
+    // CONNEXION SMTP avec STARTTLS — port fourni par SMTP_PORT
     // =============================================
     try {
         $fp = fsockopen('tcp://' . $smtp_host, $smtp_port, $errno, $errstr, 30);
@@ -234,55 +240,6 @@ function sendEmailSMTP($to, $name, $code, $smtp_config) {
     }
 }
 
-// =============================================
-// MÉTHODE FALLBACK: mail() avec encodage
-// =============================================
-function sendEmailFallback($to, $name, $code, $smtp_config) {
-    $from_email = $smtp_config['from_email'];
-    $from_name = $smtp_config['from_name'];
-    
-    $subject = '🔐 Code de confirmation - SpectreACADEMI';
-    
-    $message = "
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial, sans-serif; }
-            .code { font-size: 24px; font-weight: bold; color: #667eea; }
-        </style>
-    </head>
-    <body>
-        <h2>Bonjour $name,</h2>
-        <p>Votre code de confirmation est :</p>
-        <h1 class='code'>$code</h1>
-        <p>Ce code est valable 15 minutes.</p>
-        <p>Si vous n'avez pas demandé cette inscription, ignorez cet email.</p>
-        <p>© 2026 SpectreACADEMI</p>
-    </body>
-    </html>
-    ";
-
-    $headers = [
-        'MIME-Version: 1.0',
-        'Content-type: text/html; charset=utf-8',
-        'From: ' . $from_name . ' <' . $from_email . '>'
-    ];
-
-    $headers_str = implode("\r\n", $headers);
-    
-    error_log("🔄 Tentative d'envoi via mail() vers $to");
-    
-    if (mail($to, $subject, $message, $headers_str)) {
-        error_log("✅ Email envoyé via mail() vers $to");
-        return true;
-    } else {
-        error_log("❌ Échec via mail() vers $to");
-        return false;
-    }
-}
-
-// =============================================
-// FONCTION PRINCIPALE D'ENVOI
 // =============================================
 function sendConfirmationEmail($to, $name, $code, $smtp_config) {
     // Log
@@ -1080,38 +1037,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 <?php endif; ?>
 
-                <div class="spam-notification">
-                    <div class="spam-icon">📬</div>
-                    <div class="spam-content">
-                        <h4>🔍 Vous ne trouvez pas notre email ?</h4>
-                        <p>
-                            Le code de confirmation a été envoyé à 
-                            <span class="email-highlight"><?php echo htmlspecialchars($user_data['email']); ?></span>
-                        </p>
-                        <p>
-                            <span class="spam-highlight">📌 ASTUCE</span> 
-                            Pensez à vérifier votre dossier 
-                            <strong>« SPAM »</strong> ou 
-                            <strong>« COURRIERS INDÉSIRABLES »</strong> 
-                            dans votre boîte Gmail.
-                        </p>
-                        <p style="font-size: 0.85rem; color: #95a5a6; margin-top: 6px;">
-                            💡 Ajoutez <strong>rodriguespectre@gmail.com</strong> à vos contacts 
-                            pour recevoir nos emails dans votre boîte de réception.
-                        </p>
+                <?php if (!empty($_SESSION['temp_user']['code_sent'])): ?>
+                    <div class="spam-notification">
+                        <div class="spam-icon">📬</div>
+                        <div class="spam-content">
+                            <h4>🔍 Vous ne trouvez pas notre email ?</h4>
+                            <p>
+                                Le code de confirmation a été envoyé à
+                                <span class="email-highlight"><?php echo htmlspecialchars($user_data['email']); ?></span>
+                            </p>
+                            <p>
+                                <span class="spam-highlight">📌 ASTUCE</span>
+                                Pensez à vérifier votre dossier
+                                <strong>« SPAM »</strong> ou
+                                <strong>« COURRIERS INDÉSIRABLES »</strong>
+                                dans votre boîte Gmail.
+                            </p>
+                            <p style="font-size: 0.85rem; color: #95a5a6; margin-top: 6px;">
+                                💡 Ajoutez <strong>rodriguespectre@gmail.com</strong> à vos contacts
+                                pour recevoir nos emails dans votre boîte de réception.
+                            </p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="confirmation-info">
-                    <p>📧 Un code a été envoyé à : <strong><?php echo htmlspecialchars($user_data['email']); ?></strong></p>
-                    <p>⏱️ Valable <strong>15 minutes</strong></p>
-                    <?php if (isset($_SESSION['temp_user']['code_sent']) && $_SESSION['temp_user']['code_sent'] === false): ?>
-                        <p style="color: #ed8936;">⚠️ L'email n'a pas pu être envoyé, mais vous pouvez continuer avec le code ci-dessous pour le test :</p>
-                        <p style="color: #667eea; font-weight: bold; font-size: 1.2rem;">
-                            Code de test : <?php echo $_SESSION['temp_user']['confirmation_code']; ?>
-                        </p>
-                    <?php endif; ?>
-                </div>
+                    <div class="confirmation-info">
+                        <p>📧 Un code a été envoyé à : <strong><?php echo htmlspecialchars($user_data['email']); ?></strong></p>
+                        <p>⏱️ Valable <strong>15 minutes</strong></p>
+                    </div>
+                <?php endif; ?>
 
                 
                 <form method="POST" action="" class="register-form">
