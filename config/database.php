@@ -7,47 +7,112 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
-// Configuration de la base de données
-$host = 'localhost';
-$dbname = 'investment_db';
-$username = 'root';
-$password = '';
+/*
+|--------------------------------------------------------------------------
+| Configuration de la base de données
+|--------------------------------------------------------------------------
+| Local :
+|   DB_HOST=localhost
+|   DB_PORT=3306
+|   DB_NAME=investment_db
+|   DB_USER=root
+|   DB_PASSWORD=
+|
+| Production / Render :
+|   Les mêmes variables sont définies dans Render.
+|--------------------------------------------------------------------------
+*/
 
-// Options PDO pour une meilleure sécurité et performance
+$host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+$port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
+$dbname = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'investment_db';
+$username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'root';
+$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+
+/*
+|--------------------------------------------------------------------------
+| PDO
+|--------------------------------------------------------------------------
+*/
+
 $options = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES => false,
-    // Version corrigée : utilisation de l'option pour PHP 8.5+
-    // Option 1 : Utiliser PDO::MYSQL_ATTR_INIT_COMMAND si disponible
-    // Option 2 : Définir le charset dans le DSN
 ];
 
-// Construction du DSN avec charset
-$dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";
+$dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
 
-// Ajouter le socket si nécessaire (Termux)
-// Pour Termux, le socket MySQL est généralement ici :
-$socket = '/data/data/com.termux/files/usr/var/run/mysqld.sock';
-if (file_exists($socket)) {
-    $dsn .= ";unix_socket=$socket";
+/*
+|--------------------------------------------------------------------------
+| SSL Aiven
+|--------------------------------------------------------------------------
+| DB_SSL=true sera activé sur Render.
+| DB_SSL_CA peut contenir le chemin vers le certificat CA.
+|--------------------------------------------------------------------------
+*/
+
+$sslEnabled = filter_var(
+    $_ENV['DB_SSL'] ?? getenv('DB_SSL') ?: 'false',
+    FILTER_VALIDATE_BOOLEAN
+);
+
+if ($sslEnabled) {
+    $caFile = $_ENV['DB_SSL_CA'] ?? getenv('DB_SSL_CA') ?: '';
+
+    if ($caFile !== '' && file_exists($caFile)) {
+        $options[PDO::MYSQL_ATTR_SSL_CA] = $caFile;
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+    } else {
+        /*
+         * Aiven exige TLS. Si aucun CA n'est encore installé,
+         * on utilise TLS sans validation locale du certificat.
+         *
+         * Nous configurerons le CA Aiven proprement avant la mise
+         * en production finale.
+         */
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+    }
 }
 
+/*
+|--------------------------------------------------------------------------
+| Connexion PDO
+|--------------------------------------------------------------------------
+*/
+
 try {
-    // Connexion avec les options
-    $pdo = new PDO($dsn, $username, $password, $options);
-    
-    // Test silencieux de la connexion
+    $pdo = new PDO(
+        $dsn,
+        $username,
+        $password,
+        $options
+    );
+
     $pdo->query("SELECT 1");
-    
-} catch(PDOException $e) {
-    // En développement, on affiche l'erreur
-    if ($_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['SERVER_ADDR'] === '127.0.0.1') {
-        die("❌ Erreur de connexion à la base de données : " . $e->getMessage());
-    } else {
-        error_log("DB Error: " . $e->getMessage());
-        die("❌ Service indisponible. Veuillez réessayer plus tard.");
+
+} catch (PDOException $e) {
+
+    error_log(
+        'Database connection error: ' . $e->getMessage()
+    );
+
+    /*
+     * Ne jamais afficher les identifiants de connexion en production.
+     */
+
+    if (
+        (isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'] === 'localhost')
+        ||
+        (isset($_SERVER['SERVER_ADDR']) && $_SERVER['SERVER_ADDR'] === '127.0.0.1')
+    ) {
+        die(
+            "❌ Erreur de connexion à la base de données : "
+            . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8')
+        );
     }
+
+    die("❌ Service indisponible. Veuillez réessayer plus tard.");
 }
 
 // =============================================
