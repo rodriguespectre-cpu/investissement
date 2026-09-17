@@ -12,13 +12,12 @@ RUN apt-get update \
         zip \
     && apt-get purge -y --auto-remove \
         libonig-dev \
-        libzip-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Activer mod_rewrite
 RUN a2enmod rewrite
 
-# Configuration Apache
+# Configuration Apache pour InvestPro
 RUN printf '%s\n' \
     '<Directory /var/www/html>' \
     '    AllowOverride All' \
