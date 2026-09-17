@@ -61,8 +61,8 @@ if ($sslEnabled) {
     $caFile = $_ENV['DB_SSL_CA'] ?? getenv('DB_SSL_CA') ?: '';
 
     if ($caFile !== '' && file_exists($caFile)) {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = $caFile;
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        $options[Pdo\Mysql::ATTR_SSL_CA] = $caFile;
+        $options[Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT] = true;
     } else {
         /*
          * Aiven exige TLS. Si aucun CA n'est encore installé,
@@ -71,7 +71,7 @@ if ($sslEnabled) {
          * Nous configurerons le CA Aiven proprement avant la mise
          * en production finale.
          */
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+        $options[Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT] = false;
     }
 }
 
