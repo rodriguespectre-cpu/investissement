@@ -1,14 +1,20 @@
 FROM php:8.5-apache
 
-# Extensions PHP nécessaires à InvestPro
-RUN docker-php-ext-install \
-    pdo_mysql \
-    mbstring
+# Dépendances nécessaires à mbstring
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libonig-dev \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+    && apt-get purge -y --auto-remove \
+        libonig-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Activer mod_rewrite
+# Activer la réécriture Apache
 RUN a2enmod rewrite
 
-# Configuration Apache pour l'application
+# Autoriser .htaccess et l'accès à l'application
 RUN printf '%s\n' \
     '<Directory /var/www/html>' \
     '    AllowOverride All' \
@@ -22,10 +28,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copier les fichiers Composer
-COPY composer.json composer.lock* ./
+# Installer les dépendances PHP depuis composer.lock
+COPY composer.json composer.lock ./
 
-# Installer les dépendances PHP
 RUN composer install \
     --no-dev \
     --no-interaction \
