@@ -1,6 +1,5 @@
 FROM php:8.5-apache
 
-# Dépendances nécessaires à mbstring
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libonig-dev \
@@ -11,10 +10,8 @@ RUN apt-get update \
         libonig-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Activer la réécriture Apache
 RUN a2enmod rewrite
 
-# Autoriser .htaccess et l'accès à l'application
 RUN printf '%s\n' \
     '<Directory /var/www/html>' \
     '    AllowOverride All' \
@@ -23,12 +20,10 @@ RUN printf '%s\n' \
     > /etc/apache2/conf-available/investpro.conf \
     && a2enconf investpro
 
-# Installer Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Installer les dépendances PHP depuis composer.lock
 COPY composer.json composer.lock ./
 
 RUN composer install \
@@ -37,10 +32,8 @@ RUN composer install \
     --prefer-dist \
     --optimize-autoloader
 
-# Copier l'application
 COPY . .
 
-# Permissions Apache
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
