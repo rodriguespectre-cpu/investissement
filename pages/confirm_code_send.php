@@ -37,7 +37,7 @@ $smtp_config = [
     'port' => (int) ($_ENV['SMTP_PORT'] ?? getenv('SMTP_PORT') ?: 2525),
     'username' => $_ENV['SMTP_USERNAME'] ?? getenv('SMTP_USERNAME') ?: '',
     'password' => $_ENV['SMTP_PASSWORD'] ?? getenv('SMTP_PASSWORD') ?: '',
-    'from_email' => $_ENV['SMTP_FROM_EMAIL'] ?? getenv('SMTP_FROM_EMAIL') ?: '',
+    'from_email' => $_ENV['SMTP_FROM_EMAIL'] ?? getenv('SMTP_FROM_EMAIL') ?: 'rodriguespectre@gmail.com',
     'from_name' => $_ENV['SMTP_FROM_NAME'] ?? getenv('SMTP_FROM_NAME') ?: 'SpectreACADEMI'
 ];
 
