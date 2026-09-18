@@ -594,12 +594,32 @@ $endpoint =
     $apiUrl . '/' . ltrim($endpoint, '/');
 
 
-$jsonPayload = json_encode(
-    $payload,
-    JSON_UNESCAPED_UNICODE |
-    JSON_UNESCAPED_SLASHES |
-    JSON_THROW_ON_ERROR
+/*
+|--------------------------------------------------------------------------
+| ENCODAGE FORMULAIRE
+|--------------------------------------------------------------------------
+|
+| Render -> Chariow rencontrait un problème avec le body JSON.
+| On envoie donc les données en application/x-www-form-urlencoded.
+|
+*/
+
+$formPayload = http_build_query(
+    [
+        'product_id' => $productId,
+        'email' => $email,
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'phone' => [
+            'number' => $phoneNumber,
+            'country_code' => $countryCode
+        ]
+    ],
+    '',
+    '&',
+    PHP_QUERY_RFC3986
 );
+
 
 $ch = curl_init($endpoint);
 
@@ -608,12 +628,12 @@ curl_setopt_array(
     [
         CURLOPT_POST => true,
 
-        CURLOPT_POSTFIELDS => $jsonPayload,
+        CURLOPT_POSTFIELDS => $formPayload,
 
         CURLOPT_HTTPHEADER => [
             'Authorization: Bearer ' . $apiKey,
             'Accept: application/json',
-            'Content-Type: application/json',
+            'Content-Type: application/x-www-form-urlencoded',
             'User-Agent: InvestPro-Chariow/1.0'
         ],
 
@@ -633,6 +653,7 @@ curl_setopt_array(
     ]
 );
 
+
 $apiResponse = curl_exec($ch);
 
 $curlError = curl_error($ch);
@@ -643,33 +664,67 @@ $httpCode = (int)(
     $curlInfo['http_code'] ?? 0
 );
 
-error_log('CHARIOW URL: ' . $endpoint);
-error_log('CHARIOW BODY LENGTH: ' . strlen($jsonPayload));
-error_log('CHARIOW CONTENT TYPE: ' . ($curlInfo['content_type'] ?? ''));
-error_log('CHARIOW EFFECTIVE URL: ' . ($curlInfo['url'] ?? ''));
-error_log('CHARIOW REDIRECT COUNT: ' . ($curlInfo['redirect_count'] ?? 0));
 
-$sentHeaders = $curlInfo['request_header'] ?? '';
+/*
+|--------------------------------------------------------------------------
+| LOGS
+|--------------------------------------------------------------------------
+*/
+
+error_log('CHARIOW URL: ' . $endpoint);
+
+error_log(
+    'CHARIOW FORM BODY LENGTH: ' .
+    strlen($formPayload)
+);
+
+error_log(
+    'CHARIOW CONTENT TYPE: ' .
+    ($curlInfo['content_type'] ?? '')
+);
+
+error_log(
+    'CHARIOW EFFECTIVE URL: ' .
+    ($curlInfo['url'] ?? '')
+);
+
+error_log(
+    'CHARIOW REDIRECT COUNT: ' .
+    ($curlInfo['redirect_count'] ?? 0)
+);
+
+
+$sentHeaders =
+    $curlInfo['request_header']
+    ?? '';
+
 
 $sentHeaders = preg_replace(
-    '/Authorization:\s*Bearer\s+[^\\r\\n]+/i',
+    '/Authorization:\s*Bearer\s+[^\r\n]+/i',
     'Authorization: Bearer [REDACTED]',
     $sentHeaders
 );
 
-error_log('CHARIOW SENT HEADERS: ' . $sentHeaders);
+
+error_log(
+    'CHARIOW SENT HEADERS: ' .
+    $sentHeaders
+);
+
 
 /*
 |--------------------------------------------------------------------------
-| DEBUG CHARIOW — TEMPORAIRE
+| DEBUG CHARIOW
 |--------------------------------------------------------------------------
 */
 
 error_log('=== CHARIOW DEBUG ===');
+
 error_log(
     'HTTP CODE: ' .
     $httpCode
 );
+
 error_log(
     'PAYLOAD: ' .
     json_encode(
@@ -678,18 +733,18 @@ error_log(
         JSON_UNESCAPED_SLASHES
     )
 );
+
 error_log(
     'RESPONSE: ' .
     $apiResponse
 );
+
 error_log(
     'CURL ERROR: ' .
     $curlError
 );
+
 error_log('=== END CHARIOW DEBUG ===');
-
-
-
 
 
 /*
