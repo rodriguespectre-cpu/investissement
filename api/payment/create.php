@@ -766,6 +766,34 @@ if (
         $responseData['message']
         ?? 'Chariow a refusé la création du paiement.';
 
+    /*
+    |--------------------------------------------------------------------------
+    | DEBUG CHARIOW
+    |--------------------------------------------------------------------------
+    */
+
+    $debugFile = __DIR__ . '/../../chariow_debug.json';
+
+    $debugData = [
+        'date' => date('Y-m-d H:i:s'),
+        'http_code' => $httpCode,
+        'reference' => $reference,
+        'product_id' => $productId,
+        'payload' => $payload,
+        'response' => $responseData,
+        'curl_error' => $curlError
+    ];
+
+    file_put_contents(
+        $debugFile,
+        json_encode(
+            $debugData,
+            JSON_PRETTY_PRINT |
+            JSON_UNESCAPED_UNICODE |
+            JSON_UNESCAPED_SLASHES
+        )
+    );
+
 
     $stmt =
         $pdo->prepare("
