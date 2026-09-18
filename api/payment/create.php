@@ -650,6 +650,35 @@ $httpCode =
         CURLINFO_HTTP_CODE
     );
 
+/*
+|--------------------------------------------------------------------------
+| DEBUG CHARIOW — TEMPORAIRE
+|--------------------------------------------------------------------------
+*/
+
+error_log('=== CHARIOW DEBUG ===');
+error_log(
+    'HTTP CODE: ' .
+    $httpCode
+);
+error_log(
+    'PAYLOAD: ' .
+    json_encode(
+        $payload,
+        JSON_UNESCAPED_UNICODE |
+        JSON_UNESCAPED_SLASHES
+    )
+);
+error_log(
+    'RESPONSE: ' .
+    $apiResponse
+);
+error_log(
+    'CURL ERROR: ' .
+    $curlError
+);
+error_log('=== END CHARIOW DEBUG ===');
+
 
 
 
