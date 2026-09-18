@@ -614,8 +614,7 @@ curl_setopt_array(
             'Authorization: Bearer ' . $apiKey,
             'Accept: application/json',
             'Content-Type: application/json',
-            'User-Agent: InvestPro-Chariow/1.0',
-            'Content-Length: ' . strlen($jsonPayload)
+            'User-Agent: InvestPro-Chariow/1.0'
         ],
 
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
