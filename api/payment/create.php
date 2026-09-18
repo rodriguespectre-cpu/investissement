@@ -619,6 +619,10 @@ curl_setopt_array(
 
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 
+        CURLOPT_HEADER => false,
+
+        CURLINFO_HEADER_OUT => true,
+
         CURLOPT_RETURNTRANSFER => true,
 
         CURLOPT_CONNECTTIMEOUT => 10,
@@ -644,6 +648,16 @@ error_log('CHARIOW BODY LENGTH: ' . strlen($jsonPayload));
 error_log('CHARIOW CONTENT TYPE: ' . ($curlInfo['content_type'] ?? ''));
 error_log('CHARIOW EFFECTIVE URL: ' . ($curlInfo['url'] ?? ''));
 error_log('CHARIOW REDIRECT COUNT: ' . ($curlInfo['redirect_count'] ?? 0));
+
+$sentHeaders = $curlInfo['request_header'] ?? '';
+
+$sentHeaders = preg_replace(
+    '/Authorization:\s*Bearer\s+[^\\r\\n]+/i',
+    'Authorization: Bearer [REDACTED]',
+    $sentHeaders
+);
+
+error_log('CHARIOW SENT HEADERS: ' . $sentHeaders);
 
 /*
 |--------------------------------------------------------------------------
