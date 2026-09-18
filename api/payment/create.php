@@ -581,14 +581,17 @@ $payload = [
 
 $apiUrl =
     rtrim(
-        $chariowConfig['api_url']
-        ?? 'https://api.chariow.com/v1',
+        $chariowConfig['api_base_url']
+        ?? 'https://api.chariow.com',
         '/'
     );
 
+$endpoint =
+    $chariowConfig['checkout_endpoint']
+    ?? '/v1/checkout';
 
 $endpoint =
-    $apiUrl . '/checkout';
+    $apiUrl . '/' . ltrim($endpoint, '/');
 
 
 $ch = curl_init(
@@ -610,15 +613,13 @@ curl_setopt_array(
             ),
 
         CURLOPT_HTTPHEADER => [
-
-            'Authorization: Bearer ' .
-                $apiKey,
-
+            'Authorization: Bearer ' . $apiKey,
             'Accept: application/json',
-
-            'Content-Type: application/json'
-
+            'Content-Type: application/json',
+            'User-Agent: InvestPro/1.0'
         ],
+
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 
         CURLOPT_RETURNTRANSFER => true,
 
