@@ -621,7 +621,7 @@ $formPayload = http_build_query(
 );
 
 
-$jsonPayload = json_encode(
+$formPayload = http_build_query(
     [
         'product_id' => $productId,
         'email' => $email,
@@ -632,20 +632,22 @@ $jsonPayload = json_encode(
             'country_code' => $countryCode
         ]
     ],
-    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+    '',
+    '&',
+    PHP_QUERY_RFC3986
 );
 
 $ch = curl_init($endpoint);
 
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $jsonPayload,
+    CURLOPT_POSTFIELDS => $formPayload,
 
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer ' . $apiKey,
         'Accept: application/json',
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($jsonPayload),
+        'Content-Type: application/x-www-form-urlencoded',
+        'Content-Length: ' . strlen($formPayload),
         'User-Agent: InvestPro-Chariow/1.0',
         'Expect:'
     ],
@@ -660,6 +662,7 @@ curl_setopt_array($ch, [
 ]);
 
 $response = curl_exec($ch);
+
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
 $redirectCount = curl_getinfo($ch, CURLINFO_REDIRECT_COUNT);
@@ -669,8 +672,8 @@ $curlError = curl_error($ch);
 curl_close($ch);
 
 error_log('CHARIOW URL: ' . $endpoint);
-error_log('CHARIOW JSON REQUEST');
-error_log('CHARIOW BODY LENGTH: ' . strlen($jsonPayload));
+error_log('CHARIOW FORM REQUEST');
+error_log('CHARIOW BODY LENGTH: ' . strlen($formPayload));
 error_log('CHARIOW EFFECTIVE URL: ' . $effectiveUrl);
 error_log('CHARIOW REDIRECT COUNT: ' . $redirectCount);
 error_log('CHARIOW SENT HEADERS: ' . str_replace("\r\n", "\\r\\n", $sentHeaders));
@@ -688,7 +691,7 @@ error_log('=== END CHARIOW DEBUG ===');
 |--------------------------------------------------------------------------
 */
 
-if ($apiResponse === false) {
+if ($response === false) {
 
     $stmt =
         $pdo->prepare("
