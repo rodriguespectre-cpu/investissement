@@ -106,9 +106,13 @@ $chariowConfig = require '../../config/chariow.php';
 
 
 $apiKey =
-    $chariowConfig['api_key']
-    ?? getenv('CHARIOW_API_KEY')
-    ?? '';
+    trim(
+        (string)(
+            $chariowConfig['api_key']
+            ?? getenv('CHARIOW_API_KEY')
+            ?? ''
+        )
+    );
 
 
 if (
@@ -303,13 +307,9 @@ $nameParts =
         PREG_SPLIT_NO_EMPTY
     );
 
-
 if (!$nameParts) {
-
     $nameParts = ['Client'];
-
 }
-
 
 $firstName =
     ucfirst(
@@ -317,7 +317,6 @@ $firstName =
             (string)$nameParts[0]
         )
     );
-
 
 if (count($nameParts) > 1) {
 
@@ -340,18 +339,6 @@ if (count($nameParts) > 1) {
 
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| TÉLÉPHONE
-|--------------------------------------------------------------------------
-|
-| Chariow exige le téléphone.
-|
-| Comme ta table users actuelle ne possède pas de colonne phone,
-| le numéro doit être envoyé par le formulaire de dépôt.
-|
-*/
 
 /*
 |--------------------------------------------------------------------------
@@ -385,6 +372,7 @@ if ($phoneNumber === '') {
     );
 
 }
+
 
 /*
 |--------------------------------------------------------------------------
@@ -582,13 +570,13 @@ $payload = [
 $apiUrl =
     rtrim(
         $chariowConfig['api_base_url']
-        ?? 'https://api.chariow.com',
+            ?? 'https://api.chariow.com',
         '/'
     );
 
 $endpoint =
     $chariowConfig['checkout_endpoint']
-    ?? '/v1/checkout';
+        ?? '/v1/checkout';
 
 $endpoint =
     $apiUrl . '/' . ltrim($endpoint, '/');
@@ -596,69 +584,55 @@ $endpoint =
 
 /*
 |--------------------------------------------------------------------------
-| ENCODAGE FORMULAIRE
+| ENCODAGE JSON
 |--------------------------------------------------------------------------
 |
-| Render -> Chariow rencontrait un problème avec le body JSON.
-| On envoie donc les données en application/x-www-form-urlencoded.
+| Chariow attend un body JSON. Le passage en
+| application/x-www-form-urlencoded n'était pas la cause du 422
+| (le vrai problème était un caractère parasite dans la clé API,
+| corrigé plus haut avec trim()). On garde donc du JSON, qui est
+| le format natif attendu par l'API.
 |
 */
 
-$formPayload = http_build_query(
-    [
-        'product_id' => $productId,
-        'email' => $email,
-        'first_name' => $firstName,
-        'last_name' => $lastName,
-        'phone' => [
-            'number' => $phoneNumber,
-            'country_code' => $countryCode
-        ]
-    ],
-    '',
-    '&',
-    PHP_QUERY_RFC3986
-);
+$jsonPayload =
+    json_encode(
+        $payload,
+        JSON_UNESCAPED_UNICODE |
+        JSON_UNESCAPED_SLASHES |
+        JSON_THROW_ON_ERROR
+    );
 
-
-$formPayload = http_build_query(
-    [
-        'product_id' => $productId,
-        'email' => $email,
-        'first_name' => $firstName,
-        'last_name' => $lastName,
-        'phone' => [
-            'number' => $phoneNumber,
-            'country_code' => $countryCode
-        ]
-    ],
-    '',
-    '&',
-    PHP_QUERY_RFC3986
-);
 
 $ch = curl_init($endpoint);
 
 curl_setopt_array($ch, [
+
     CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $formPayload,
+
+    CURLOPT_POSTFIELDS => $jsonPayload,
 
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer ' . $apiKey,
         'Accept: application/json',
-        'Content-Type: application/x-www-form-urlencoded',
-        'Content-Length: ' . strlen($formPayload),
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($jsonPayload),
         'User-Agent: InvestPro-Chariow/1.0',
         'Expect:'
     ],
 
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+
     CURLOPT_HEADER => false,
+
     CURLINFO_HEADER_OUT => true,
+
     CURLOPT_RETURNTRANSFER => true,
 
     CURLOPT_CONNECTTIMEOUT => 10,
+
     CURLOPT_TIMEOUT => (int)($chariowConfig['timeout'] ?? 30)
+
 ]);
 
 $response = curl_exec($ch);
@@ -672,12 +646,11 @@ $curlError = curl_error($ch);
 curl_close($ch);
 
 error_log('CHARIOW URL: ' . $endpoint);
-error_log('CHARIOW FORM REQUEST');
-error_log('CHARIOW BODY LENGTH: ' . strlen($formPayload));
+error_log('CHARIOW JSON REQUEST');
+error_log('CHARIOW BODY LENGTH: ' . strlen($jsonPayload));
 error_log('CHARIOW EFFECTIVE URL: ' . $effectiveUrl);
 error_log('CHARIOW REDIRECT COUNT: ' . $redirectCount);
-error_log('CHARIOW SENT HEADERS: ' . str_replace("\r\n", "\\r\\n", $sentHeaders));
-
+error_log('CHARIOW SENT HEADERS: ' . str_replace("\r\n", "\\r\\n", (string)$sentHeaders));
 error_log('=== CHARIOW DEBUG ===');
 error_log('HTTP CODE: ' . $httpCode);
 error_log('RESPONSE: ' . (string)$response);
@@ -706,7 +679,6 @@ if ($response === false) {
             WHERE id = ?
         ");
 
-
     $stmt->execute([
         $curlError ?: 'Erreur inconnue',
         $transactionId
@@ -733,7 +705,7 @@ if ($response === false) {
 
 $responseData =
     json_decode(
-        $apiResponse,
+        $response,
         true
     );
 
