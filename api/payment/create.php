@@ -594,62 +594,57 @@ $endpoint =
     $apiUrl . '/' . ltrim($endpoint, '/');
 
 
-$ch = curl_init(
-    $endpoint
+$jsonPayload = json_encode(
+    $payload,
+    JSON_UNESCAPED_UNICODE |
+    JSON_UNESCAPED_SLASHES |
+    JSON_THROW_ON_ERROR
 );
 
+$ch = curl_init($endpoint);
 
 curl_setopt_array(
     $ch,
     [
-
         CURLOPT_POST => true,
 
-        CURLOPT_POSTFIELDS =>
-            json_encode(
-                $payload,
-                JSON_UNESCAPED_UNICODE |
-                JSON_UNESCAPED_SLASHES
-            ),
+        CURLOPT_POSTFIELDS => $jsonPayload,
 
         CURLOPT_HTTPHEADER => [
             'Authorization: Bearer ' . $apiKey,
             'Accept: application/json',
             'Content-Type: application/json',
-            'User-Agent: InvestPro/1.0'
+            'User-Agent: InvestPro-Chariow/1.0',
+            'Content-Length: ' . strlen($jsonPayload)
         ],
 
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 
         CURLOPT_RETURNTRANSFER => true,
 
-        CURLOPT_FOLLOWLOCATION => true,
-
         CURLOPT_CONNECTTIMEOUT => 10,
 
-        CURLOPT_TIMEOUT =>
-            (int)(
-                $chariowConfig['timeout']
-                ?? 30
-            )
-
+        CURLOPT_TIMEOUT => (int)(
+            $chariowConfig['timeout'] ?? 30
+        )
     ]
 );
 
+$apiResponse = curl_exec($ch);
 
-$apiResponse =
-    curl_exec($ch);
+$curlError = curl_error($ch);
 
+$curlInfo = curl_getinfo($ch);
 
-$curlError =
-    curl_error($ch);
+$httpCode = (int)(
+    $curlInfo['http_code'] ?? 0
+);
 
-
-$httpCode =
-    (int)curl_getinfo(
-        $ch,
-        CURLINFO_HTTP_CODE
-    );
+error_log('CHARIOW URL: ' . $endpoint);
+error_log('CHARIOW BODY LENGTH: ' . strlen($jsonPayload));
+error_log('CHARIOW CONTENT TYPE: ' . ($curlInfo['content_type'] ?? ''));
+error_log('CHARIOW EFFECTIVE URL: ' . ($curlInfo['url'] ?? ''));
+error_log('CHARIOW REDIRECT COUNT: ' . ($curlInfo['redirect_count'] ?? 0));
 
 /*
 |--------------------------------------------------------------------------
