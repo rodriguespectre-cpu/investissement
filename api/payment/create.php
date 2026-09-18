@@ -621,25 +621,33 @@ $formPayload = http_build_query(
 );
 
 
-$ch = curl_init($endpoint);
+$jsonPayload = json_encode(
+    [
+        'product_id' => $productId,
+        'email' => $email,
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'phone' => [
+            'number' => $phoneNumber,
+            'country_code' => $countryCode
+        ]
+    ],
+    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+);
 
-$postFields = [
-    'product_id' => $productId,
-    'email' => $email,
-    'first_name' => $firstName,
-    'last_name' => $lastName,
-    'phone[number]' => $phoneNumber,
-    'phone[country_code]' => $countryCode,
-];
+$ch = curl_init($endpoint);
 
 curl_setopt_array($ch, [
     CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $postFields,
+    CURLOPT_POSTFIELDS => $jsonPayload,
 
     CURLOPT_HTTPHEADER => [
         'Authorization: Bearer ' . $apiKey,
         'Accept: application/json',
-        'User-Agent: InvestPro-Chariow/1.0'
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($jsonPayload),
+        'User-Agent: InvestPro-Chariow/1.0',
+        'Expect:'
     ],
 
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
@@ -661,7 +669,8 @@ $curlError = curl_error($ch);
 curl_close($ch);
 
 error_log('CHARIOW URL: ' . $endpoint);
-error_log('CHARIOW MULTIPART REQUEST');
+error_log('CHARIOW JSON REQUEST');
+error_log('CHARIOW BODY LENGTH: ' . strlen($jsonPayload));
 error_log('CHARIOW EFFECTIVE URL: ' . $effectiveUrl);
 error_log('CHARIOW REDIRECT COUNT: ' . $redirectCount);
 error_log('CHARIOW SENT HEADERS: ' . str_replace("\r\n", "\\r\\n", $sentHeaders));
