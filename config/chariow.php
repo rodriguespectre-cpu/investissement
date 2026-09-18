@@ -76,8 +76,8 @@ return [
             'amount' => 4000,
         ],
 
-        'prd_qip2y4' => [
-            'name' => 'Prime V',
+        'prd_mnmidx3d' => [
+            'name' => 'Live TV',
             'amount' => 5000,
         ],
 

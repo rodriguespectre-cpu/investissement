@@ -157,9 +157,9 @@ $depositProducts = [
         'name'   => 'Dépôt 4 000 FCFA'
     ],
 
-    'prd_qip2y4' => [
+    'prd_mnmidx3d' => [
         'amount' => 5000,
-        'name'   => 'Dépôt 5 000 FCFA'
+        'name'   => 'Live TV'
     ],
 
     'prd_ubsw2b8q' => [
