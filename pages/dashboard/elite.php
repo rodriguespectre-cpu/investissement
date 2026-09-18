@@ -952,16 +952,15 @@ if (
                 '/'
             );
 
-        $apiKey =
+$apiKey =
+    trim(
+        (string)(
             $config['api_key']
+            ?? ($_ENV['CHARIOW_API_KEY'] ?? null)
             ?? getenv('CHARIOW_API_KEY')
-            ?? '';
-
-        if ($apiKey === '') {
-
-            throw new Exception(
-                'Clé API Chariow non configurée.'
-            );
+            ?? ''
+        )
+    );
         }
 
         /*
