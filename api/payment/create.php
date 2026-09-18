@@ -623,127 +623,53 @@ $formPayload = http_build_query(
 
 $ch = curl_init($endpoint);
 
-curl_setopt_array(
-    $ch,
-    [
-        CURLOPT_POST => true,
+$postFields = [
+    'product_id' => $productId,
+    'email' => $email,
+    'first_name' => $firstName,
+    'last_name' => $lastName,
+    'phone[number]' => $phoneNumber,
+    'phone[country_code]' => $countryCode,
+];
 
-        CURLOPT_POSTFIELDS => $formPayload,
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => $postFields,
 
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $apiKey,
-            'Accept: application/json',
-            'Content-Type: application/x-www-form-urlencoded',
-            'User-Agent: InvestPro-Chariow/1.0'
-        ],
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer ' . $apiKey,
+        'Accept: application/json',
+        'User-Agent: InvestPro-Chariow/1.0'
+    ],
 
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_HEADER => false,
+    CURLINFO_HEADER_OUT => true,
+    CURLOPT_RETURNTRANSFER => true,
 
-        CURLOPT_HEADER => false,
+    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_TIMEOUT => (int)($chariowConfig['timeout'] ?? 30)
+]);
 
-        CURLINFO_HEADER_OUT => true,
-
-        CURLOPT_RETURNTRANSFER => true,
-
-        CURLOPT_CONNECTTIMEOUT => 10,
-
-        CURLOPT_TIMEOUT => (int)(
-            $chariowConfig['timeout'] ?? 30
-        )
-    ]
-);
-
-
-$apiResponse = curl_exec($ch);
-
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+$redirectCount = curl_getinfo($ch, CURLINFO_REDIRECT_COUNT);
+$sentHeaders = curl_getinfo($ch, CURLINFO_HEADER_OUT);
 $curlError = curl_error($ch);
 
-$curlInfo = curl_getinfo($ch);
-
-$httpCode = (int)(
-    $curlInfo['http_code'] ?? 0
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| LOGS
-|--------------------------------------------------------------------------
-*/
+curl_close($ch);
 
 error_log('CHARIOW URL: ' . $endpoint);
-
-error_log(
-    'CHARIOW FORM BODY LENGTH: ' .
-    strlen($formPayload)
-);
-
-error_log(
-    'CHARIOW CONTENT TYPE: ' .
-    ($curlInfo['content_type'] ?? '')
-);
-
-error_log(
-    'CHARIOW EFFECTIVE URL: ' .
-    ($curlInfo['url'] ?? '')
-);
-
-error_log(
-    'CHARIOW REDIRECT COUNT: ' .
-    ($curlInfo['redirect_count'] ?? 0)
-);
-
-
-$sentHeaders =
-    $curlInfo['request_header']
-    ?? '';
-
-
-$sentHeaders = preg_replace(
-    '/Authorization:\s*Bearer\s+[^\r\n]+/i',
-    'Authorization: Bearer [REDACTED]',
-    $sentHeaders
-);
-
-
-error_log(
-    'CHARIOW SENT HEADERS: ' .
-    $sentHeaders
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| DEBUG CHARIOW
-|--------------------------------------------------------------------------
-*/
+error_log('CHARIOW MULTIPART REQUEST');
+error_log('CHARIOW EFFECTIVE URL: ' . $effectiveUrl);
+error_log('CHARIOW REDIRECT COUNT: ' . $redirectCount);
+error_log('CHARIOW SENT HEADERS: ' . str_replace("\r\n", "\\r\\n", $sentHeaders));
 
 error_log('=== CHARIOW DEBUG ===');
-
-error_log(
-    'HTTP CODE: ' .
-    $httpCode
-);
-
-error_log(
-    'PAYLOAD: ' .
-    json_encode(
-        $payload,
-        JSON_UNESCAPED_UNICODE |
-        JSON_UNESCAPED_SLASHES
-    )
-);
-
-error_log(
-    'RESPONSE: ' .
-    $apiResponse
-);
-
-error_log(
-    'CURL ERROR: ' .
-    $curlError
-);
-
+error_log('HTTP CODE: ' . $httpCode);
+error_log('RESPONSE: ' . (string)$response);
+error_log('CURL ERROR: ' . $curlError);
 error_log('=== END CHARIOW DEBUG ===');
 
 
